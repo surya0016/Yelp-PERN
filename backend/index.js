@@ -44,6 +44,8 @@ app.post('/api/v1/restaurants', async(req,res)=>{
         const {location} = req.body;
         const {price_range} = req.body;
 
+
+
         const zodSchema = z.object({
             name:z.string().trim().min(1, {message:"name is invalid"}),
             location:z.string().trim().min(1, {message: "location is invalid"}),
@@ -63,11 +65,12 @@ app.post('/api/v1/restaurants', async(req,res)=>{
             return;
         }
 
-        const data = db.query("INSERT INTO restaurants (name, location, price_range) VALUES ($1, $2, $3);",[name, location, price_range])
+        const data = await db.query("INSERT INTO restaurants (name, location, price_range) VALUES ($1, $2, $3) RETURNING * ",[name, location, price_range])
         res.json({
-            success:response.success,
-            data:data,
-    })
+            msg:"Added new Restaurant",
+            status:response.success,
+            data:data.rows,
+        })
     } catch (error) {
         console.log(error);
     }
@@ -83,8 +86,12 @@ app.put('/api/v1/restaurants/:id', async(req,res)=>{
         const {location} = req.body;
         const {price_range} = req.body;
         
-        await db.query("UPDATE restaurants SET name = $1, location = $2, price_range =$3 WHERE id = $4;",[name, location, price_range, id])
-        res.json("Updated");
+        const data = await db.query("UPDATE restaurants SET name = $1, location = $2, price_range =$3 WHERE id = $4 RETURNING *;",[name, location, price_range, id])
+        res.json({
+            msg:"Updated Restaurant",
+            status:"success",
+            data:data.rows,
+        });
     } catch (error) {
         console.log(error);
     }
@@ -98,8 +105,12 @@ app.delete('/api/v1/restaurants/:id', async(req,res)=>{
     try {
         const {id} = req.params;
 
-        await db.query("DELETE FROM restaurants WHERE id = $1",[id])
-        res.json("Restaurant Deleted");
+        const data = await db.query("DELETE FROM restaurants WHERE id = $1 RETURNING *",[id])
+        res.json({
+            msg:"Removed Restaurant",
+            status:"success",
+            data:data.rows,
+        });
 
     } catch (error) {
         console.log(error);
