@@ -1,23 +1,20 @@
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
 import './App.css'
-import Test from './components/Test'
 import Home from './pages/Home'
 import RestaurantDetail from './pages/RestaurantDetail'
-import UpdatePage from './pages/UpdatePage'
-import AddBar from './components/AddBar'
+import { RestaurantsContextProvider } from './context/RestaurantsContext'
 
 function App() {
-
   return (
     <>
+    <RestaurantsContextProvider >
       <BrowserRouter>
         <Routes>
-          <Route path='/' element={<AddBar/>}/>
-          <Route path='/home' element={<Home/>}/>
-          <Route path='/restaurants/:id/update' element={<UpdatePage/>}/>
+          <Route path='/' element={<Home/>}/>
           <Route path='/restaurants/:id' element={<RestaurantDetail/>}/>
         </Routes>
       </BrowserRouter>
+      </RestaurantsContextProvider>
     </>
   )
 }
