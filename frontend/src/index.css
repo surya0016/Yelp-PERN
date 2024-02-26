@@ -1,13 +1,13 @@
 @import 'tailwindcss/base';
 @import 'tailwindcss/components';
 @import 'tailwindcss/utilities';
-@layer base { /*This is used for removind the increment and decrement arrow from the number input box*/
+ /*@layer base {This is used for removind the increment and decrement arrow from the number input box
   input[type="number"]::-webkit-inner-spin-button,
   input[type="number"]::-webkit-outer-spin-button {
     -webkit-appearance: none;
     margin: 0;
   }
-}
+}*/
 *{
   margin:0;
   padding:0;

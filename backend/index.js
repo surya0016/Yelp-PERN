@@ -20,6 +20,7 @@ app.get('/api/v1/restaurants', async(req,res)=>{
         }) 
     } catch (error) {
         console.log(error);
+        res.json(error);
     }
     
 })
@@ -32,6 +33,7 @@ app.get('/api/v1/restaurants/:id', async(req,res)=>{
         res.json({data:data.rows})
     } catch (error) {
         console.log(error);
+        res.json(error);
     }
     
 })
@@ -66,6 +68,7 @@ app.post('/api/v1/restaurants', async(req,res)=>{
         }
 
         const data = await db.query("INSERT INTO restaurants (name, location, price_range) VALUES ($1, $2, $3) RETURNING * ",[name, location, price_range])
+        
         res.json({
             msg:"Added new Restaurant",
             status:response.success,
@@ -73,6 +76,7 @@ app.post('/api/v1/restaurants', async(req,res)=>{
         })
     } catch (error) {
         console.log(error);
+        res.json(error);
     }
 })
 
@@ -94,6 +98,7 @@ app.put('/api/v1/restaurants/:id', async(req,res)=>{
         });
     } catch (error) {
         console.log(error);
+        res.json(error);
     }
     
 
@@ -104,7 +109,7 @@ app.delete('/api/v1/restaurants/:id', async(req,res)=>{
 
     try {
         const {id} = req.params;
-
+        await db.query("DELETE FROM reviews WHERE restaurant_id=$1",[id])
         const data = await db.query("DELETE FROM restaurants WHERE id = $1 RETURNING *",[id])
         res.json({
             msg:"Removed Restaurant",
@@ -114,8 +119,85 @@ app.delete('/api/v1/restaurants/:id', async(req,res)=>{
 
     } catch (error) {
         console.log(error);
+        res.json(error);
     }
     
+})
+
+app.get('/api/v1/review/:id',async(req,res)=>{
+
+    try {
+        const id = req.params.id;
+        const data = await db.query("SELECT * FROM reviews WHERE restaurant_id = $1",[id])
+        const datarating = await db.query("SELECT rating FROM reviews WHERE restaurant_id = $1",[id])
+        
+        const arr = [];
+        datarating.rows.map((rat)=>arr.push(rat.rating))
+        const sum = arr.reduce((acc, curr)=> {return acc+curr}, 0);
+        let avg = sum/arr.length;
+        
+        const ratingCheck = await db.query("SELECT id FROM reviews WHERE restaurant_id = $1",[id])
+        
+        if(ratingCheck.rows[0]){
+            await db.query("UPDATE restaurants SET avg_rating=$1 WHERE id = $2;",[avg,id])
+        }else{
+            avg=0;
+        }
+        res.json({
+            msg:"review for id "+id,
+            data:data.rows,
+            avg:avg,
+            status:"success",
+            r:(ratingCheck.rows[0] ? true : false),
+            re:ratingCheck.rows
+        }) 
+    } catch (error) {
+        console.log(error);
+        res.json({error
+        });
+    }
+
+    
+})
+
+app.get('/api/v1/review',async(req,res)=>{
+    const data = await db.query("SELECT rating,restaurant_id FROM reviews")
+    
+    res.json({
+        data:data.rows
+    })
+})
+
+app.post('/api/v1/review/:id',async(req,res)=>{
+    try {
+        const {id} = req.params;
+        const {review} = req.body;
+        const {rating} = req.body;
+        const {name} = req.body;
+
+        const zodSchema = z.object({
+            rating:z.number().min(1).max(5, {msg:"Number must be less than or equal to 5"})
+        })
+
+        const response = zodSchema.safeParse(req.body);
+
+        if(!response.success){
+            res.status(404).send({
+                msg:response.error.issues[0].message
+            })
+        }else{
+            const data = await db.query("INSERT INTO reviews (restaurant_id, name, review, rating) VALUES ($1, $2, $3, $4) RETURNING *;",[id,name, review, rating]);
+            
+            res.json({
+                msg:"added review for id "+req.params.id,
+                data:data,
+                status:"success"
+            }) 
+}
+    } catch (error) {
+        console.log(error);
+        res.json(error)
+    }
 })
 
 

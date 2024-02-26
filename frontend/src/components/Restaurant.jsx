@@ -3,12 +3,14 @@ import React, { useContext, useEffect, useState } from 'react'
 import { RestaurantsContext, RestaurantsContextProvider } from '../context/RestaurantsContext'
 import UpdatePage from './UpdatePage'
 import { useNavigate } from 'react-router-dom'
+import Star from './Star'
 
 
 function Restaurant() {
     const [data, setData] = useState([])
     const [modal, setModal] = useState(false)
     const [modalid, setModalid] = useState()
+    const [avg, setAvg] = useState();
     const navigate = useNavigate();
     const {restaurant} = useContext(RestaurantsContext)
     const fetchData = async () => {
@@ -33,8 +35,15 @@ function Restaurant() {
         }
     } 
 
+    const GetAvg = async (id) => {
+        const response = await axios.get("http://localhost:4040/api/v1/review/"+id);        
+        let avg= response.data.avg;
+        let average = Number(avg)
+        return average;
+      }
+
     useEffect(()=>{
-        fetchData()
+        fetchData();
     },[restaurant])
 
   return (
@@ -56,8 +65,8 @@ function Restaurant() {
                                 <td className='text-white text-lg text-center'onClick={()=>navigate(`/restaurants/${data.id}`)}>{data.name}</td>
                                 <td className='text-white text-lg text-center'onClick={()=>navigate(`/restaurants/${data.id}`)}>{data.location}</td>
                                 <td className='text-white text-lg text-center'onClick={()=>navigate(`/restaurants/${data.id}`)}>{("$").repeat(data.price_range)}</td>
-                                <td className='text-white text-lg text-center'onClick={()=>navigate(`/restaurants/${data.id}`)}>***</td>
-                                <td className='text-white text-lg text-center'><button onClick={(e)=>{setModal(!modal); setModalid(e.target.value)}} value={data.id} className='bg-green-600 rounded-md px-3 m-3 hover:bg-green-500'>Update</button></td>
+                                <td className='text-white text-lg text-center'onClick={()=>navigate(`/restaurants/${data.id}`)}>{<Star rating={5}/>}</td>
+                                <td className='text-white text-lg text-center'><button onClick={(e)=>{setModal(!modal); setModalid(e.target.value)}} value={data.id} className='bg-green-600 rounded-md px-3 m-3  hover:bg-green-500'>Update</button></td>
                                 <td className='text-white text-lg text-center'><button onClick={()=>deletData(data.id)} className='bg-red-600 rounded-md px-3 m-3 hover:bg-red-700'>Delete</button></td>
                                 <td>{modal && <UpdatePage id={modalid} onclose={()=>setModal(!modal)}/>}</td>
                             </tr>
@@ -66,7 +75,7 @@ function Restaurant() {
                     <td className='text-white text-lg bg-zinc-600 text-center rounded-bl-md'>Bav Vada Pav</td>
                     <td className='text-white text-lg bg-zinc-600 text-center'>Ghatkopar</td>
                     <td className='text-white text-lg bg-zinc-600 text-center'>$</td>
-                    <td className='text-white text-lg bg-zinc-600 text-center'>****</td>
+                    <td className='text-white text-lg bg-zinc-600 text-center'>{<Star rating={5}/>}</td>
                     <td className='text-white text-lg bg-zinc-600 text-center'><button className='bg-green-600 rounded-md px-3 m-3 hover:bg-green-500'>Update</button></td>
                     <td className='text-white text-lg bg-zinc-600 text-center rounded-br-md'><button className='bg-red-600 rounded-md px-3 m-3 hover:bg-red-700'>Delete</button></td>
                 </tr>  
